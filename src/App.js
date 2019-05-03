@@ -3,12 +3,59 @@ import marked from 'marked';
 import classNames from 'classnames';
 import LinesEllipsis from 'react-lines-ellipsis';
 import uniqueId from 'lodash.uniqueid';
-import Swal from 'sweetalert2'
-import axios from 'axios';
+import { popupConfirm, formatDate } from './util';
+import { loadNote, loadNotebooks, loadNotes, addNote, saveNote, removeNote} from './Api';
 import 'github-markdown-css';
 import './App.scss';
 
-// TODO 重构
+// TODO 待重构
+const Notebook = ({ id, name, currentNotebookId, switchNoteBook, deleteNotebook }) => {
+  return (
+    <li key={id} 
+        onClick={(e) => {
+            switchNoteBook(id);
+        }}
+        className={classNames('notebook', {'selected': currentNotebookId === id})}>
+      <i className="iconfont icon-book" />
+      {name}
+      <i onClick={(e) => {
+        e.stopPropagation();
+        deleteNotebook(id);
+      }}
+      className="iconfont icon-icon_trashcan trashcan" />
+    </li>
+  );
+}
+
+const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}) => {
+  return (
+    <li className="note" onClick={() => {
+        switchNote(id);
+    }}>
+      <div className={classNames('box', {'selected': currentNoteId === id})}>
+        <div className="note-title">
+          {title}
+        </div>
+        <div className="note-content">
+          <LinesEllipsis 
+            text={body}
+            maxLine='6'
+            ellipsis='...'
+            trimRight
+            basedOn='letters'
+          />
+        </div>
+      </div>
+      <div className="note-footer">
+        { formatDate(datetime)}
+        <i onClick={(e) => {
+          e.stopPropagation();
+          deleteNote(id);
+        }} className="iconfont icon-icon_trashcan trashcan" />
+      </div>
+    </li>
+  );
+}
 
 class App extends React.Component {
 
@@ -33,22 +80,11 @@ class App extends React.Component {
       return note;
     });
     this.setState({[key]: e.target.value, note: newNotes});
-    this.saveNote(newNotes.filter(n => n.id === currentNoteId)[0]);
-  }
-
-  popupConfirm(message) {
-    return Swal.fire({
-      title: '?',
-      text: message,
-      type: 'info',
-      confirmButtonText: 'OK',
-      showCancelButton: true,
-      showCloseButton: true
-    })
+    saveNote(newNotes.filter(n => n.id === currentNoteId)[0]);
   }
 
   deleteNotebook = (notebookId) => {
-    const result = this.popupConfirm('你确定要删除该笔记本?');
+    const result = popupConfirm('你确定要删除该笔记本?');
     result.then((res) => {
       if(res.value) {
         const {notebooks} = this.state;
@@ -61,7 +97,7 @@ class App extends React.Component {
   }
 
   deleteNote = (noteId) => {
-    const result = this.popupConfirm('你确定要删除该笔记?');
+    const result = popupConfirm('你确定要删除该笔记?');
 
     result.then((res) => {
       if(res.value) {
@@ -73,7 +109,7 @@ class App extends React.Component {
         } else {
           this.setState({currentNoteId: 0, title: '', body: ''});
         }
-        this.removeNote(noteId);
+        removeNote(noteId);
       }
     })
   }
@@ -90,11 +126,11 @@ class App extends React.Component {
     };
     this.setState({notes: [newNote, ...notes], currentNoteId: id, title: '新建笔记', body: ''});
 
-    this.newNote(newNote);
+    addNote(newNote);
   }
 
   switchNoteBook = async (currentNotebookId) => {
-    const notes = await this.loadNotes(currentNotebookId);
+    const notes = await loadNotes(currentNotebookId);
     this.setState({currentNotebookId, notes});
     let currentNoteId = notes[0] && notes[0].id;
     if (currentNoteId) {
@@ -105,46 +141,8 @@ class App extends React.Component {
   }
 
   switchNote = async (currentNoteId) => {
-    const note = await this.loadNote(currentNoteId);
+    const note = await loadNote(currentNoteId);
     this.setState({currentNoteId, body: note.body, title: note.title});
-  }
-
-  async loadNotebooks() {
-    const notebooksResponse = await axios.get('http://localhost:3000/notebooks')
-    let notebooks = notebooksResponse.data || [];
-    return notebooks;
-  }
-
-  async loadNotes(currentNotebookId) {
-    const notesResponse = await axios.get(`http://localhost:3000/notes?bookId=${currentNotebookId}`)
-    let notes = notesResponse.data || [];
-    return notes;
-  }
-
-  async removeNotebook() {
-
-  }
-
-  async removeNote(id) {
-    if(id) {
-      await axios.delete(`http://localhost:3000/notes/${id}`, { "Content-Type": "application/json" });
-    }
-  }
-
-  async newNote(note) {
-      await axios.post(`http://localhost:3000/notes`, note, { "Content-Type": "application/json" });
-  }
-
-  async saveNote(note) {
-    if(note && note.id) {
-      await axios.put(`http://localhost:3000/notes/${note.id}`, note, { "Content-Type": "application/json" });
-    }
-  }
-
-  async loadNote(currentNoteId) {
-    const noteResponse = await axios.get(` http://localhost:3000/notes/${currentNoteId}`)
-    let note = noteResponse.data || [];
-    return note;
   }
 
   async componentDidMount() {
@@ -152,13 +150,13 @@ class App extends React.Component {
     if (preState) {
       this.setState(JSON.parse(preState));
     } else {
-      const notebooks = await this.loadNotebooks();
+      const notebooks = await loadNotebooks();
       let currentNotebookId = notebooks[0] && notebooks[0].id;
       this.setState({notebooks, currentNotebookId});
-      const notes = await this.loadNotes(currentNotebookId);
+      const notes = await loadNotes(currentNotebookId);
       let currentNoteId = notes[0] && notes[0].id;
       this.setState({notes, currentNoteId});
-      const note = await this.loadNote(currentNoteId);
+      const note = await loadNote(currentNoteId);
       this.setState({body: note.body, title: note.title});
     }
   }
@@ -189,19 +187,11 @@ class App extends React.Component {
               { 
                 notebooks.map(notebook => {
                   return (
-                    <li key={notebook.id} 
-                        onClick={(e) => {
-                            this.switchNoteBook(notebook.id);
-                        }}
-                        className={classNames('notebook', {'selected': currentNotebookId === notebook.id})}>
-                      <i className="iconfont icon-book" />
-                      {notebook.name}
-                      <i onClick={(e) => {
-                        e.stopPropagation();
-                        this.deleteNotebook(notebook.id);
-                      }}
-                      className="iconfont icon-icon_trashcan trashcan" />
-                    </li>
+                    <Notebook key={notebook.id} 
+                    { ...notebook } 
+                    currentNotebookId={currentNotebookId} 
+                    switchNoteBook={this.switchNoteBook} 
+                    deleteNotebook={this.deleteNotebook} />
                   );
                 }) 
               }
@@ -216,31 +206,12 @@ class App extends React.Component {
             {
               notes.map(note => {
                 return (
-                  <li key={note.id} className="note" onClick={() => {
-                      this.switchNote(note.id);
-                  }}>
-                    <div className={classNames('box', {'selected': currentNoteId === note.id})}>
-                      <div className="note-title">
-                        {note.title}
-                      </div>
-                      <div className="note-content">
-                        <LinesEllipsis 
-                          text={note.body}
-                          maxLine='6'
-                          ellipsis='...'
-                          trimRight
-                          basedOn='letters'
-                        />
-                      </div>
-                    </div>
-                    <div className="note-footer">
-                      {note.datetime}
-                      <i onClick={(e) => {
-                        e.stopPropagation();
-                        this.deleteNote(note.id);
-                      }} className="iconfont icon-icon_trashcan trashcan" />
-                    </div>
-                  </li>
+                  <Note key={note.id} 
+                    {... note}
+                    currentNoteId={currentNoteId} 
+                    switchNote={this.switchNote} 
+                    deleteNote={this.deleteNote}
+                  />
                 );
               })
             }
@@ -262,7 +233,7 @@ class App extends React.Component {
                   this.handleChange(e, 'body');
                 }
               }/>
-              <div className="preview" dangerouslySetInnerHTML={{__html: html}} />
+              <div className="preview markdown-body" dangerouslySetInnerHTML={{__html: html}} />
             </div>
           </div>
         </div>

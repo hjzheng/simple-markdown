@@ -14,11 +14,7 @@ ul, li {
   display: block;
   margin: 0;
   padding: 0;
-  list-style: none;
-}
-
-.button {
-
+  list-style: none；
 }
 
 .app {
@@ -175,8 +171,21 @@ ul, li {
         }
         >.preview {
           flex: 1;
+          height: calc(100vh - 116px);
           overflow-y: auto;
           padding: 10px 20px;
+          ul {
+            >li {
+              display: list-item;
+              list-style-type: disc;
+            }  
+          }
+          ol {
+            >li {
+              display: list-item;
+              list-style-type: decimal;
+            }  
+          }
         }
       }
     }
