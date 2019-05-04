@@ -58,7 +58,7 @@ const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}
 
 const MarkdownEditor = ({note, handleChange}) => {
 
-  const html = marked(note.body);
+  const html = marked(note.body || '');
 
   return (
     <div className="editor-panel">
@@ -92,22 +92,22 @@ class App extends React.Component {
     notebooks: [],
     currentNotebookId: 0,
     notes: [],
-    currentNoteId: 0,
-    body: '',
-    title: '',
+    currentNote: {
+      body: '', title: ''
+    }
   }
 
   handleChange = (e, key) => {
     const { value } = e.target;
-    const { notes, currentNoteId } = this.state;
+    const { notes, currentNote } = this.state;
     const newNotes = notes.map(note => {
-      if (note.id === currentNoteId) {
+      if (note.id === currentNote.id) {
         note[key] = value
       } 
       return note;
     });
-    this.setState({[key]: e.target.value, note: newNotes});
-    saveNote(newNotes.filter(n => n.id === currentNoteId)[0]);
+    this.setState({currentNote: {...currentNote, [key]: e.target.value}, notes: newNotes});
+    saveNote(newNotes.filter(n => n.id === currentNote.id)[0]);
   }
 
   deleteNotebook = (notebookId) => {
@@ -132,9 +132,9 @@ class App extends React.Component {
         const nNotes = notes.filter(n => n.id !== noteId)
         this.setState({notes: nNotes});
         if (nNotes[0]) {
-          this.setState({currentNoteId: nNotes[0].id || 0, title: nNotes[0].title|| '', body: nNotes[0].body|| ''});
+          this.setState({currentNote: nNotes[0]});
         } else {
-          this.setState({currentNoteId: 0, title: '', body: ''});
+          this.setState({currentNote: {title: '', body: ''}});
         }
         removeNote(noteId);
       }
@@ -151,7 +151,7 @@ class App extends React.Component {
       datetime: (new Date()).toISOString(),
       bookId: currentNotebookId 
     };
-    this.setState({notes: [newNote, ...notes], currentNoteId: id, title: '新建笔记', body: ''});
+    this.setState({notes: [newNote, ...notes], currentNote: newNote});
 
     addNote(newNote);
   }
@@ -163,13 +163,15 @@ class App extends React.Component {
     if (currentNoteId) {
       this.switchNote(currentNoteId);
     } else {
-      this.setState({notes: [], body: '', title: ''});
+      this.setState({notes: [], currentNote: {
+        body: '', title: ''
+      }});
     }
   }
 
   switchNote = async (currentNoteId) => {
     const note = await loadNote(currentNoteId);
-    this.setState({currentNoteId, body: note.body, title: note.title});
+    this.setState({currentNote: note});
   }
 
   async componentDidMount() {
@@ -184,7 +186,7 @@ class App extends React.Component {
       let currentNoteId = notes[0] && notes[0].id;
       this.setState({notes, currentNoteId});
       const note = await loadNote(currentNoteId);
-      this.setState({body: note.body, title: note.title});
+      this.setState({currentNote: note});
     }
   }
 
@@ -194,7 +196,9 @@ class App extends React.Component {
 
 
   render() {
-    const { title, body, notebooks, currentNotebookId, notes, currentNoteId } = this.state;
+    const { currentNote, notebooks, currentNotebookId, notes } = this.state;
+
+    const currentNotebook = notebooks.filter(n => n.id === currentNotebookId)[0];
 
     return (
       <div className="app">
@@ -234,7 +238,7 @@ class App extends React.Component {
                 return (
                   <Note key={note.id} 
                     {... note}
-                    currentNoteId={currentNoteId} 
+                    currentNoteId={currentNote.id} 
                     switchNote={this.switchNote} 
                     deleteNote={this.deleteNote}
                   />
@@ -243,7 +247,7 @@ class App extends React.Component {
             }
           </ul>
         </div>
-        <MarkdownEditor note={{title, body}} handleChange={this.handleChange} />    
+        <MarkdownEditor note={currentNote} handleChange={this.handleChange} />    
       </div>
     );
   }
