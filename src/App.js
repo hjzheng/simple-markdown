@@ -42,7 +42,6 @@ const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}
             maxLine='6'
             ellipsis='...'
             trimRight
-            basedOn='letters'
           />
         </div>
       </div>
@@ -54,6 +53,34 @@ const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}
         }} className="iconfont icon-icon_trashcan trashcan" />
       </div>
     </li>
+  );
+}
+
+const MarkdownEditor = ({note, handleChange}) => {
+
+  const html = marked(note.body);
+
+  return (
+    <div className="editor-panel">
+      <div className="header">
+        <i className="iconfont icon-book1" />默认笔记本
+      </div>
+      <div className="body">
+        <div className="note-title">
+          <input value={note.title} onChange={(e) => {
+              handleChange(e, 'title');
+            }
+          }/>
+        </div>
+        <div className="note-content">
+          <textarea className="editor" value={note.body} onChange={(e) => {
+              handleChange(e, 'body');
+            }
+          }/>
+          <div className="preview markdown-body" dangerouslySetInnerHTML={{__html: html}} />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -168,7 +195,6 @@ class App extends React.Component {
 
   render() {
     const { title, body, notebooks, currentNotebookId, notes, currentNoteId } = this.state;
-    const html = marked(body);
 
     return (
       <div className="app">
@@ -217,26 +243,7 @@ class App extends React.Component {
             }
           </ul>
         </div>
-        <div className="editor-panel">
-          <div className="header">
-            <i className="iconfont icon-book1" />默认笔记本
-          </div>
-          <div className="body">
-            <div className="note-title">
-              <input value={title} onChange={(e) => {
-                  this.handleChange(e, 'title');
-                }
-              }/>
-            </div>
-            <div className="note-content">
-              <textarea className="editor" value={body} onChange={(e) => {
-                  this.handleChange(e, 'body');
-                }
-              }/>
-              <div className="preview markdown-body" dangerouslySetInnerHTML={{__html: html}} />
-            </div>
-          </div>
-        </div>
+        <MarkdownEditor note={{title, body}} handleChange={this.handleChange} />    
       </div>
     );
   }
