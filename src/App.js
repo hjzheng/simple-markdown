@@ -10,8 +10,18 @@ import './App.scss';
 
 // TODO 待重构
 const Notebook = ({ id, name, currentNotebookId, switchNoteBook, deleteNotebook }) => {
+  // 我一般倾向于把节点中的代码给移出来，保持jsx代码的可读性，比如
+  /*
+  const onDelete = () => {
+
+  }
+  ...
+  <i onClick={onDelete} ... />
+  */
+  // 如果箭头函数体只有一行，可以不用换行，以及不用大括号，比如
+  // <li onClick={() => switchNodeBook(id)} />
   return (
-    <li key={id} 
+    <li key={id} // 这个key属性应该是重构带来的，其实可以不要
         onClick={(e) => {
             switchNoteBook(id);
         }}
@@ -37,7 +47,7 @@ const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}
           {title}
         </div>
         <div className="note-content">
-          <LinesEllipsis 
+          <LinesEllipsis  // 以前我没用过这个库，学习到了：）
             text={body}
             maxLine='6'
             ellipsis='...'
@@ -46,7 +56,7 @@ const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}
         </div>
       </div>
       <div className="note-footer">
-        { formatDate(datetime)}
+        {formatDate(datetime)}
         <i onClick={(e) => {
           e.stopPropagation();
           deleteNote(id);
@@ -57,7 +67,6 @@ const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}
 }
 
 const MarkdownEditor = ({note, handleChange}) => {
-
   const html = marked(note.body || '');
 
   return (
@@ -100,10 +109,17 @@ class App extends React.Component {
   handleChange = (e, key) => {
     const { value } = e.target;
     const { notes, currentNote } = this.state;
+
+    // 这里功能没问题，但是语句意图不明确
+    // 可以使用 Array#find 找出那个note, 然后更新
+    // 这样后面的 saveNote 直接用找到的note即可。
+    //
+    // map用于执行数据转换，一般不更改原来元素
+    // filter用于过滤出需要的元素，返回是个列表
     const newNotes = notes.map(note => {
       if (note.id === currentNote.id) {
         note[key] = value
-      } 
+      }
       return note;
     });
     this.setState({currentNote: {...currentNote, [key]: e.target.value}, notes: newNotes});
@@ -111,6 +127,8 @@ class App extends React.Component {
   }
 
   deleteNotebook = (notebookId) => {
+    // 这里result是个promise，可以直接使用async/await来减少缩进
+    // 因为我看其他函数中用到了， async/await 不仅仅用于异步加载数据，只要promise接口都可以使用
     const result = popupConfirm('你确定要删除该笔记本?');
     result.then((res) => {
       if(res.value) {
@@ -146,10 +164,10 @@ class App extends React.Component {
     const id = uniqueId();
     const newNote = {
       id,
-      title: '新建笔记', 
-      body:'', 
+      title: '新建笔记',
+      body:'',
       datetime: (new Date()).toISOString(),
-      bookId: currentNotebookId 
+      bookId: currentNotebookId
     };
     this.setState({notes: [newNote, ...notes], currentNote: newNote});
 
@@ -191,6 +209,17 @@ class App extends React.Component {
   }
 
   componentWillUpdate(nextProps, nextState){
+    // 这个生命周期已废弃了
+    // https://reactjs.org/docs/react-component.html?utm_source=caibaojian.com#unsafe_componentwillupdate
+    // 当前场景可以在 componentDidMount 中挂接 onbeforeunload 事件来完成
+    // 不过不建议把所有state都序列化到 localStorage中， 那样可能会有些问题
+    // 1. 数据不同步，和db.json中的数据如果不一致会有问题
+    // 2. 万一后续在state中加的字段，有可能不能序列化，如循环引用等
+    // 3. state中可能有大量的列表数据，直接序列化会把storage撑满
+    //
+    // 建议只保存 "用户操作的 状态数据"，这些数据db.json中是没有的，比如
+    // 1. 未保存的输入
+    // 2. 当前选中的日志 id 等
     window.localStorage.setItem('note', JSON.stringify(nextState));
   }
 
@@ -198,6 +227,8 @@ class App extends React.Component {
   render() {
     const { currentNote, notebooks, currentNotebookId, notes } = this.state;
 
+    // 可使用 Array#find 代替
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
     const currentNotebook = notebooks.filter(n => n.id === currentNotebookId)[0];
 
     return (
@@ -214,16 +245,16 @@ class App extends React.Component {
               笔记本
             </div>
             <ul className="notebook-list">
-              { 
+              {
                 notebooks.map(notebook => {
                   return (
-                    <Notebook key={notebook.id} 
-                    { ...notebook } 
-                    currentNotebookId={currentNotebookId} 
-                    switchNoteBook={this.switchNoteBook} 
+                    <Notebook key={notebook.id}
+                    { ...notebook }
+                    currentNotebookId={currentNotebookId}
+                    switchNoteBook={this.switchNoteBook}
                     deleteNotebook={this.deleteNotebook} />
                   );
-                }) 
+                })
               }
             </ul>
           </div>
@@ -236,10 +267,10 @@ class App extends React.Component {
             {
               notes.map(note => {
                 return (
-                  <Note key={note.id} 
+                  <Note key={note.id}
                     {... note}
-                    currentNoteId={currentNote.id} 
-                    switchNote={this.switchNote} 
+                    currentNoteId={currentNote.id}
+                    switchNote={this.switchNote}
                     deleteNote={this.deleteNote}
                   />
                 );
@@ -247,7 +278,7 @@ class App extends React.Component {
             }
           </ul>
         </div>
-        <MarkdownEditor note={currentNote} handleChange={this.handleChange} />    
+        <MarkdownEditor note={currentNote} handleChange={this.handleChange} />
       </div>
     );
   }

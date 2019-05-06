@@ -24,6 +24,10 @@ export const formatDate = (dateString) => {
         return '刚刚';
     }
 
+    // 下面的几个语句，其实前半个分支都可以不要的，比如
+    //  if (duration <= 30 * 60) {
+    //    ...
+    //  }
     if (duration > 15 * 60 && duration <= 30 * 60 ) {
         return '15 分钟之前';
     }
@@ -53,13 +57,15 @@ export const formatDate = (dateString) => {
     const dd = date.getDate();
     const nd = now.getDate();
 
+    // 下面的一段代码，我觉得可以优化得更加简洁。
+    // 可以尝试重构一下, 把函数代码重构到一屏之内
     if (dy === ny) {
         if (dm ===nm) {
             if (nd - dd === 0) {
                 // 今天
                 return `今天 ${date.getHours()}:${date.getMinutes()}`;
             }
-    
+
             if (nd - dd === 1) {
                 // 昨天
                 return `昨天 ${date.getHours()}:${date.getMinutes()}`;
