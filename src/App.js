@@ -47,7 +47,7 @@ const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}
           {title}
         </div>
         <div className="note-content">
-          <LinesEllipsis  // 以前我没用过这个库，学习到了：）
+          <LinesEllipsis  // 以前我没用过这个库，学习到了， 谢谢：）
             text={body}
             maxLine='6'
             ellipsis='...'
