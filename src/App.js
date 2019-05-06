@@ -221,7 +221,7 @@ class App extends React.Component {
     // 1. 未保存的输入
     // 2. 当前选中的日志 id 等
     //
-    // 在React中，我们最常用的生命周期函数很少，主要有
+    // 在React中，我们常用的生命周期函数很少，主要有
     // 1. componentDidMount
     // 2. componentWillUnmount
     //
