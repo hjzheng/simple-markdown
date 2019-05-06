@@ -101,34 +101,30 @@ class App extends React.Component {
   handleChange = (e, key) => {
     const { value } = e.target;
     const { notes, currentNote } = this.state;
-    const newNotes = notes.map(note => {
-      if (note.id === currentNote.id) {
-        note[key] = value
-      } 
-      return note;
-    });
-    this.setState({currentNote: {...currentNote, [key]: e.target.value}, notes: newNotes});
-    saveNote(newNotes.filter(n => n.id === currentNote.id)[0]);
+
+    const copyNotes = notes.slice();
+    
+    const findedNote = copyNotes.find(n => n.id === currentNote.id);
+    findedNote[key] = value;
+
+    this.setState({currentNote: {...currentNote, [key]: e.target.value}, notes: copyNotes});
+    saveNote(findedNote);
   }
 
-  deleteNotebook = (notebookId) => {
-    const result = popupConfirm('你确定要删除该笔记本?');
-    result.then((res) => {
-      if(res.value) {
+  deleteNotebook = async (notebookId) => {
+    const result = await popupConfirm('你确定要删除该笔记本?');
+      if(result.value) {
         const {notebooks} = this.state;
         const nNotebooks = notebooks.filter(n => n.id !== notebookId)
         this.setState({notebooks: nNotebooks});
         let currentNotebookId = nNotebooks[0] && nNotebooks[0].id;
         this.switchNoteBook(currentNotebookId);
       }
-    })
   }
 
-  deleteNote = (noteId) => {
-    const result = popupConfirm('你确定要删除该笔记?');
-
-    result.then((res) => {
-      if(res.value) {
+  deleteNote = async (noteId) => {
+    const result = await popupConfirm('你确定要删除该笔记?');
+      if(result.value) {
         const {notes} = this.state;
         const nNotes = notes.filter(n => n.id !== noteId)
         this.setState({notes: nNotes});
@@ -139,7 +135,6 @@ class App extends React.Component {
         }
         removeNote(noteId);
       }
-    })
   }
 
   addNote = () => {
@@ -148,7 +143,7 @@ class App extends React.Component {
     const newNote = {
       id,
       title: '新建笔记', 
-      body:'', 
+      body: '', 
       datetime: (new Date()).toISOString(),
       bookId: currentNotebookId 
     };
@@ -176,30 +171,55 @@ class App extends React.Component {
   }
 
   async componentDidMount() {
-    let preState = window.localStorage.getItem('note');
-    if (preState) {
-      this.setState(JSON.parse(preState));
-    } else {
       const notebooks = await loadNotebooks();
-      let currentNotebookId = notebooks[0] && notebooks[0].id;
-      this.setState({notebooks, currentNotebookId});
-      const notes = await loadNotes(currentNotebookId);
-      let currentNoteId = notes[0] && notes[0].id;
-      this.setState({notes, currentNoteId});
-      const note = await loadNote(currentNoteId);
-      this.setState({currentNote: note});
-    }
+      
+      let currentNotebookId = 0, notes = [], note = {};
+
+      let preState = window.localStorage.getItem('note');
+      if (preState) {
+        const state = JSON.parse(preState);
+        currentNotebookId = state.currentNotebookId;
+        notes = await loadNotes(currentNotebookId);
+        note = await loadNote(state.currentNoteId);
+      } else {
+        currentNotebookId = notebooks[0] && notebooks[0].id;
+        notes = await loadNotes(currentNotebookId);
+        let currentNoteId = notes[0] && notes[0].id;
+        note = await loadNote(currentNoteId);
+      }
+
+      this.setState({
+        notebooks,
+        currentNotebookId,
+        notes,
+        currentNote: note
+      });
+
+    window.addEventListener('beforeunload', (event) => {
+      // Cancel the event as stated by the standard.
+      event.preventDefault();
+
+      debugger;
+
+      const {currentNotebookId, currentNote} = this.state;
+
+      window.localStorage.setItem('note', JSON.stringify({
+        currentNotebookId,
+        currentNoteId: currentNote.id
+      }));
+      // Chrome requires returnValue to be set.
+      event.returnValue = '';
+    });
   }
 
-  componentWillUpdate(nextProps, nextState){
-    window.localStorage.setItem('note', JSON.stringify(nextState));
+  componentWillUnmount() {
+    window.removeEventListener('beforeunload');
   }
-
 
   render() {
     const { currentNote, notebooks, currentNotebookId, notes } = this.state;
 
-    const currentNotebook = notebooks.filter(n => n.id === currentNotebookId)[0];
+    const currentNotebook = notebooks.find(n => n.id === currentNotebookId);
 
     return (
       <div className="app">
