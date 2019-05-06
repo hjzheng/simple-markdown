@@ -8,11 +8,27 @@ class App extends React.Component {
 
   state = initialData;
 
+  onDragStart = () => {
+    document.body.style.color = 'orange';
+  } 
+
+  onDragUpdate = (update) => {
+    const { destination } = update;
+    const opacity = destination
+    ? destination.index / Object.keys(this.state.tasks).length
+    : 0;
+    document.body.style.backgroundColor = `rgba( 153, 141, 217, ${opacity})`;
+  }
+
+
   onDragEnd = result => {
+
+    document.body.style.color = 'inherit';
+    document.body.style.backgroundColor = 'inherit';
     
     // reorder our column
 
-    console.log(result);
+    // console.log(result);
     const { destination, source, draggableId } = result;
 
     // no destination
@@ -57,7 +73,11 @@ class App extends React.Component {
     const { columnOrder, columns, tasks } = this.state;
 
     return (
-      <DragDropContext onDragEnd={this.onDragEnd}>
+      <DragDropContext 
+        onDragEnd={this.onDragEnd} 
+        onDragStart={this.onDragStart}
+        onDragUpdate={this.onDragUpdate}
+        >
         {
           columnOrder.map(columnId => {
             const _column = columns[columnId];
