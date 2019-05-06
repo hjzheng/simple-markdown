@@ -8,49 +8,53 @@ import { loadNote, loadNotebooks, loadNotes, addNote, saveNote, removeNote} from
 import 'github-markdown-css';
 import './App.scss';
 
-// TODO 待重构
+
+/*
+  学习总结
+  1. 把节点中的代码给移出来，保持jsx代码的可读性。
+*/
 const Notebook = ({ id, name, currentNotebookId, switchNoteBook, deleteNotebook }) => {
+
+  const className = classNames('notebook', {'selected': currentNotebookId === id});
+
+  const onDelete = e => {
+    e.stopPropagation();
+    deleteNotebook(id);
+  };
+
   return (
-    <li key={id} 
-        onClick={(e) => {
-            switchNoteBook(id);
-        }}
-        className={classNames('notebook', {'selected': currentNotebookId === id})}>
+    <li onClick={e => switchNoteBook(id)} className={className}>
       <i className="iconfont icon-book" />
       {name}
-      <i onClick={(e) => {
-        e.stopPropagation();
-        deleteNotebook(id);
-      }}
-      className="iconfont icon-icon_trashcan trashcan" />
+      <i onClick={onDelete} className="iconfont icon-icon_trashcan trashcan" />
     </li>
   );
 }
 
 const Note = ({id, title, body, datetime, currentNoteId, switchNote, deleteNote}) => {
+
+  const className = classNames('box', {'selected': currentNoteId === id});
+
+  const noteContent = <LinesEllipsis text={body} maxLine='6' ellipsis='...' trimRight />
+
+  const onDeleteNote = e => {
+    e.stopPropagation();
+    deleteNote(id);
+  }
+
   return (
-    <li className="note" onClick={() => {
-        switchNote(id);
-    }}>
-      <div className={classNames('box', {'selected': currentNoteId === id})}>
+    <li className="note" onClick={() => switchNote(id)}>
+      <div className={className}>
         <div className="note-title">
           {title}
         </div>
         <div className="note-content">
-          <LinesEllipsis 
-            text={body}
-            maxLine='6'
-            ellipsis='...'
-            trimRight
-          />
+          {noteContent}
         </div>
       </div>
       <div className="note-footer">
-        { formatDate(datetime)}
-        <i onClick={(e) => {
-          e.stopPropagation();
-          deleteNote(id);
-        }} className="iconfont icon-icon_trashcan trashcan" />
+        {formatDate(datetime)}
+        <i onClick={onDeleteNote} className="iconfont icon-icon_trashcan trashcan" />
       </div>
     </li>
   );
@@ -67,16 +71,10 @@ const MarkdownEditor = ({note, handleChange}) => {
       </div>
       <div className="body">
         <div className="note-title">
-          <input value={note.title} onChange={(e) => {
-              handleChange(e, 'title');
-            }
-          }/>
+          <input value={note.title} onChange={e => handleChange(e, 'title')}/>
         </div>
         <div className="note-content">
-          <textarea className="editor" value={note.body} onChange={(e) => {
-              handleChange(e, 'body');
-            }
-          }/>
+          <textarea className="editor" value={note.body} onChange={e => handleChange(e, 'body')} />
           <div className="preview markdown-body" dangerouslySetInnerHTML={{__html: html}} />
         </div>
       </div>
@@ -97,6 +95,9 @@ class App extends React.Component {
     }
   }
 
+  /*
+    Array#find 语义化更明确 filter 返回的是一个数组
+  */
   handleChange = (e, key) => {
     const { value } = e.target;
     const { notes, currentNote } = this.state;
