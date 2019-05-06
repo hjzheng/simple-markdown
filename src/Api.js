@@ -4,7 +4,7 @@ export const loadNotebooks = async() => {
     const notebooksResponse = await axios.get('http://localhost:3000/notebooks')
     // 我们在使用const和let时，如果后面没有对变量重新赋值，优先使用const。
     // 当函数语句较多时，区分const和let在可读性方面优势会明显，因为let需要给予更多的关注（要找找哪里有修改）
-    // 在ES6 块作用域 那一节中有讲到这个点，不过你的ES6基本功很好，估计这一部分只有经验总结部分对你有帮助。
+    // 在ES6 块作用域 那一节中有讲到这个点，不过你的ES6基本功很好，估计只有经验总结部分对你有帮助。
     let notebooks = notebooksResponse.data || [];
     return notebooks;
 }
