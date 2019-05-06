@@ -11,7 +11,8 @@ export const loadNotebooks = async() => {
 
 // 问个问题？
 // 你们目前前端团队的的代码缩进是使用4个空格吗？
-// 因为我看到几个文件中的代码缩进不一致，比如`App.js`中的代码缩进是2个空格，这里是4个空格。
+// 因为我看到几个文件中的代码缩进不一致，比如`App.js`中的代码缩进是2个空格，这个文件中是4个空格。
+// 目前前端项目中（包括开源的）用2个空格缩进的比较多
 export const loadNotes = async(currentNotebookId) => {
     const notesResponse = await axios.get(`http://localhost:3000/notes?bookId=${currentNotebookId}`)
     let notes = notesResponse.data || [];

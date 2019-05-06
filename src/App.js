@@ -127,8 +127,8 @@ class App extends React.Component {
   }
 
   deleteNotebook = (notebookId) => {
-    // 这里result是个promise，可以直接使用async/await来减少缩进
-    // 因为我看其他函数中用到了， async/await 不仅仅用于异步加载数据，只要promise接口都可以使用
+    // 这里result是个Promise，可以直接使用async/await来减少缩进
+    // 因为我看其他函数中用到了， async/await 不仅仅用于异步加载数据，只要Promise接口都可以使用
     const result = popupConfirm('你确定要删除该笔记本?');
     result.then((res) => {
       if(res.value) {
@@ -212,12 +212,12 @@ class App extends React.Component {
     // 这个生命周期已废弃了
     // https://reactjs.org/docs/react-component.html?utm_source=caibaojian.com#unsafe_componentwillupdate
     // 当前场景可以在 componentDidMount 中挂接 onbeforeunload 事件来完成
-    // 不过不建议把所有state都序列化到 localStorage中， 那样可能会有些问题
+    // 不过不建议把所有state都序列化到 localStorage中， 那样可能会有些问题：
     // 1. 数据不同步，和db.json中的数据如果不一致会有问题
-    // 2. 万一后续在state中加的字段，有可能不能序列化，如循环引用等
+    // 2. 如果后续在state中加不能序列化的字段，如循环引用等
     // 3. state中可能有大量的列表数据，直接序列化会把storage撑满
     //
-    // 建议只保存 "用户操作的 状态数据"，这些数据db.json中是没有的，比如
+    // 建议只保存 "用户操作的状态数据"，这些数据db.json中是没有的，比如
     // 1. 未保存的输入
     // 2. 当前选中的日志 id 等
     window.localStorage.setItem('note', JSON.stringify(nextState));
