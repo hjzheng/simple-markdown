@@ -220,6 +220,15 @@ class App extends React.Component {
     // 建议只保存 "用户操作的状态数据"，这些数据db.json中是没有的，比如
     // 1. 未保存的输入
     // 2. 当前选中的日志 id 等
+    //
+    // 在React中，我们最常用的生命周期函数很少，主要有
+    // 1. componentDidMount
+    // 2. componentWillUnmount
+    //
+    // 3. shouldComponentUpdate
+    // 4. componentDidUpdate
+    //
+    // 如果用到其他的函数，那么就要仔细思考，是否哪里有问题。
     window.localStorage.setItem('note', JSON.stringify(nextState));
   }
 
