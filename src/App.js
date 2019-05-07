@@ -84,6 +84,7 @@ const MarkdownEditor = ({note, handleChange}) => {
 
 class App extends React.Component {
 
+  // 目前没用到哦
   textareaRef = React.createRef();
 
   state = {
@@ -103,7 +104,7 @@ class App extends React.Component {
     const { notes, currentNote } = this.state;
 
     const copyNotes = notes.slice();
-    
+
     const findedNote = copyNotes.find(n => n.id === currentNote.id);
     findedNote[key] = value;
 
@@ -113,28 +114,28 @@ class App extends React.Component {
 
   deleteNotebook = async (notebookId) => {
     const result = await popupConfirm('你确定要删除该笔记本?');
-      if(result.value) {
-        const {notebooks} = this.state;
-        const nNotebooks = notebooks.filter(n => n.id !== notebookId)
-        this.setState({notebooks: nNotebooks});
-        let currentNotebookId = nNotebooks[0] && nNotebooks[0].id;
-        this.switchNoteBook(currentNotebookId);
-      }
+    if(result.value) {
+      const {notebooks} = this.state;
+      const nNotebooks = notebooks.filter(n => n.id !== notebookId)
+      this.setState({notebooks: nNotebooks});
+      let currentNotebookId = nNotebooks[0] && nNotebooks[0].id;
+      this.switchNoteBook(currentNotebookId);
+    }
   }
 
   deleteNote = async (noteId) => {
     const result = await popupConfirm('你确定要删除该笔记?');
-      if(result.value) {
-        const {notes} = this.state;
-        const nNotes = notes.filter(n => n.id !== noteId)
-        this.setState({notes: nNotes});
-        if (nNotes[0]) {
-          this.setState({currentNote: nNotes[0]});
-        } else {
-          this.setState({currentNote: {title: '', body: ''}});
-        }
-        removeNote(noteId);
+    if(result.value) {
+      const {notes} = this.state;
+      const nNotes = notes.filter(n => n.id !== noteId)
+      this.setState({notes: nNotes});
+      if (nNotes[0]) {
+        this.setState({currentNote: nNotes[0]});
+      } else {
+        this.setState({currentNote: {title: '', body: ''}});
       }
+      removeNote(noteId);
+    }
   }
 
   addNote = () => {
@@ -142,10 +143,10 @@ class App extends React.Component {
     const id = uniqueId();
     const newNote = {
       id,
-      title: '新建笔记', 
-      body: '', 
+      title: '新建笔记',
+      body: '',
       datetime: (new Date()).toISOString(),
-      bookId: currentNotebookId 
+      bookId: currentNotebookId
     };
     this.setState({notes: [newNote, ...notes], currentNote: newNote});
 
@@ -155,7 +156,7 @@ class App extends React.Component {
   switchNoteBook = async (currentNotebookId) => {
     const notes = await loadNotes(currentNotebookId);
     this.setState({currentNotebookId, notes});
-    let currentNoteId = notes[0] && notes[0].id;
+    const currentNoteId = notes[0] && notes[0].id;
     if (currentNoteId) {
       this.switchNote(currentNoteId);
     } else {
@@ -172,7 +173,7 @@ class App extends React.Component {
 
   async componentDidMount() {
       const notebooks = await loadNotebooks();
-      
+
       let currentNotebookId = 0, notes = [], note = {};
 
       let preState = window.localStorage.getItem('note');
@@ -197,9 +198,10 @@ class App extends React.Component {
 
     window.addEventListener('beforeunload', (event) => {
       // Cancel the event as stated by the standard.
+      // 这里不需要preventDefault吧？
       event.preventDefault();
 
-      debugger;
+      // debugger;
 
       const {currentNotebookId, currentNote} = this.state;
 
@@ -213,6 +215,7 @@ class App extends React.Component {
   }
 
   componentWillUnmount() {
+    // 可以在上面保存beforeunload的handler，在这里就可以移除了
     window.removeEventListener('beforeunload');
   }
 
@@ -235,16 +238,16 @@ class App extends React.Component {
               笔记本
             </div>
             <ul className="notebook-list">
-              { 
+              {
                 notebooks.map(notebook => {
                   return (
-                    <Notebook key={notebook.id} 
-                    { ...notebook } 
-                    currentNotebookId={currentNotebookId} 
-                    switchNoteBook={this.switchNoteBook} 
+                    <Notebook key={notebook.id}
+                    { ...notebook }
+                    currentNotebookId={currentNotebookId}
+                    switchNoteBook={this.switchNoteBook}
                     deleteNotebook={this.deleteNotebook} />
                   );
-                }) 
+                })
               }
             </ul>
           </div>
@@ -257,10 +260,10 @@ class App extends React.Component {
             {
               notes.map(note => {
                 return (
-                  <Note key={note.id} 
+                  <Note key={note.id}
                     {... note}
-                    currentNoteId={currentNote.id} 
-                    switchNote={this.switchNote} 
+                    currentNoteId={currentNote.id}
+                    switchNote={this.switchNote}
                     deleteNote={this.deleteNote}
                   />
                 );
@@ -268,7 +271,7 @@ class App extends React.Component {
             }
           </ul>
         </div>
-        <MarkdownEditor note={currentNote} handleChange={this.handleChange} />    
+        <MarkdownEditor note={currentNote} handleChange={this.handleChange} />
       </div>
     );
   }
