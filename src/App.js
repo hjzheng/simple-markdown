@@ -216,6 +216,32 @@ class App extends React.Component {
 
   componentWillUnmount() {
     // 可以在上面保存beforeunload的handler，在这里就可以移除了
+    // 我这里提供另一种模式供参考
+    // 在 componentDidMount 中初始化时
+    /*
+    const handler = ...
+    window.addEventListener('beforeunload', handler);
+
+    this.clean = () => {
+      window.removeEventListener('beforeunload', handler);
+    };
+    */
+
+    // 然后在 componentWillUnmount 中直接调用 `this.clean()` 完成清理
+    // 这样的好处是，把初始化和清理集中在一个逻辑点上。
+    // 后面学习 [React Hooks](https://reactjs.org/docs/hooks-intro.html) 时会见到这种模式，比如
+    /*
+    useEffect(() => {
+      const handler = ...;
+      window.addEventListener('beforeunload', handler);
+
+      // 返回清理的函数
+      return () => {
+        window.removeEventListener('beforeunload', handler);
+      };
+    });
+    */
+
     window.removeEventListener('beforeunload');
   }
 
