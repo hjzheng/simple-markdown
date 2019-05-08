@@ -1,129 +1,96 @@
 import React from 'react';
 import styled from 'styled-components';
-import './App.scss';
 
-const Container = styled.div`
+import { Subject, fromEvent } from 'rxjs';
+
+import {
+  concatMap,
+  filter,
+  map,
+  takeUntil,
+  throttleTime,
+  finalize,
+  tap
+} from 'rxjs/operators';
+
+const Block = styled.div`
   border: 1px solid red;
-  witdh: 500px;
-  margin: 10px;
+  color: #fff;
+  background: red;
+  height: 30px;
+  width: 30px;
+  position: absolute;
 `
-
-// React.createContext({globalValue: 'globalValue'})  返回一个组件，参数为默认值
-
-const GlobalContext = React.createContext({
-  globalValue: 'globalValue'
-});
-
-function inject(Context, selector) {
-  return function Wrapper(WrapperComponent) {
-    return class ContextComponet extends React.Component {
-      render() {
-        return (
-          <Context.Consumer>
-            {
-              data => (
-                <WrapperComponent 
-                  {...this.props} 
-                  {...(selector ? selector(data) : data)}
-                />
-              )
-            }
-          </Context.Consumer>
-        )
-      }
-    }
-  }
-}
 
 class App extends React.Component {
 
-  // 注意 clickHandler 必须在 state 声明之前，如果需要把 state 作为整个状态传入 GlobalContext value 中
-  clickHandler = () => {
-    this.setState({globalValue: 'globalValue changed'});
+  constructor(props) {
+    super(props);
+    this.movableBlock = React.createRef();
   }
 
-  state = {
-    globalValue: 'globalValue',
-    clickHandler: this.clickHandler
+  get position() {
+    const {left, top} = this.movableBlock.current.getBoundingClientRect();
+    return {
+      left,
+      top
+    }
+  }
+
+  set position({left, top}) {
+    this.movableBlock.current.style.left = `${left}px`;
+    this.movableBlock.current.style.top = `${top}px`;
+  }
+
+  drag$ = new Subject();
+
+  onDragStart = (e) => {
+    e.persist();
+    this.drag$.next(e);
+  }
+
+  get movable() {
+    return true;
+  }
+
+  componentDidMount() {
+    this.drag$.pipe(
+      filter(() => this.movable),
+      tap(() => {
+        console.log('开始移动')
+      }),
+      map(event => ({
+        event
+      })),
+      concatMap(({event}) => 
+        fromEvent(window, 'mousemove').pipe(
+          throttleTime(50),
+          map((moveEvent) => {
+            return {
+              left: moveEvent.clientX,
+              top: moveEvent.clientY
+            }
+          }),
+          takeUntil(fromEvent(window, 'mouseup')),
+          finalize(() => {
+            console.log('移动结束')
+          })
+        ))
+    ).subscribe(position => {
+      console.log(position);
+      this.position = position;
+    });
   }
 
   render() {
     return (
-      <GlobalContext.Provider value={this.state}>
-        <Container className="App">
-          <LayerOne clickHandler={this.clickHandler}/>
-        </Container>
-      </GlobalContext.Provider>
-    );
-  }
-}
-
-function LayerOne(props) {
-  return (
-    <Container className="LayerOne">
-        <div>
-          <button onClick={props.clickHandler}>Change global value</button>
-        </div>
-        <LayerTwo />
-    </Container>
-  );
-}
-
-
-/*
-
-static contextType = GlobalContext;
-必须在有状态组件中使用
-
-*/
-class LayerTwo extends React.Component {
-  
-  static contextType = GlobalContext;
-
-  render() {
-    return (
-      <Container className="LayerOne">
-          {this.context.globalValue}
-          <LayerThree />
-      </Container>
-    );
-  }
-}
-
-
-
-/*
-
-GlobalContext.Consumer
-
-可在无状态组件中使用
-
-*/
-function LayerThree() {
-  return (
-    <Container className="LayerThree">
-      <GlobalContext.Consumer>
-        {({globalValue, clickHandler}) => {
-          return (
-            <div>
-              {globalValue}
-              <button onClick={clickHandler}>Change global value</button>
-            </div>
-          )
-        }}
-      </GlobalContext.Consumer>
-      <LayerFour />
-    </Container>
-  );
-}
-
-@inject(GlobalContext)
-class LayerFour extends React.Component {
-  render() {
-    return (
-      <Container className="LayerFour">
-        {this.props.globalValue}
-      </Container>
+      <div>
+        <Block ref={this.movableBlock}
+          onDragStart={(e) => e.preventDefault()}
+          onMouseDown={this.onDragStart}>
+          rxjs test
+        </Block>
+      </div>
     );
   }
 }
