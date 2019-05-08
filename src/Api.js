@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const loadNotebooks = async() => {
-  const notebooksResponse = await axios.get('http://localhost:3000/notebooks')
+  const notebooksResponse = await axios.get('http://localhost:3000/notebooks');
   const notebooks = notebooksResponse.data || [];
   return notebooks;
 }
@@ -18,7 +18,7 @@ export const removeNotebook = async () => {
 
 export const removeNote = async (id) => {
   if(id) {
-      await axios.delete(`http://localhost:3000/notes/${id}`, { "Content-Type": "application/json" });
+    await axios.delete(`http://localhost:3000/notes/${id}`, { "Content-Type": "application/json" });
   }
 }
 
@@ -28,12 +28,12 @@ export const addNote = async (note) => {
 
 export const saveNote = async (note) => {
   if(note && note.id) {
-      await axios.put(`http://localhost:3000/notes/${note.id}`, note, { "Content-Type": "application/json" });
+    await axios.put(`http://localhost:3000/notes/${note.id}`, note, { "Content-Type": "application/json" });
   }
 }
 
 export const loadNote = async(currentNoteId) => {
-  const noteResponse = await axios.get(` http://localhost:3000/notes/${currentNoteId}`)
+  const noteResponse = await axios.get(` http://localhost:3000/notes/${currentNoteId}`);
   const note = noteResponse.data || [];
   return note;
 }

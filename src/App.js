@@ -171,49 +171,48 @@ class App extends React.Component {
   }
 
   async componentDidMount() {
-      const notebooks = await loadNotebooks();
-      
-      let currentNotebookId = 0, notes = [], note = {};
+    const notebooks = await loadNotebooks();
+    
+    let currentNotebookId = 0, notes = [], note = {};
 
-      let preState = window.localStorage.getItem('note');
-      if (preState) {
-        const state = JSON.parse(preState);
-        currentNotebookId = state.currentNotebookId;
-        notes = await loadNotes(currentNotebookId);
-        note = await loadNote(state.currentNoteId);
-      } else {
-        currentNotebookId = notebooks[0] && notebooks[0].id;
-        notes = await loadNotes(currentNotebookId);
-        let currentNoteId = notes[0] && notes[0].id;
-        note = await loadNote(currentNoteId);
-      }
+    let preState = window.localStorage.getItem('note');
+    if (preState) {
+      const state = JSON.parse(preState);
+      currentNotebookId = state.currentNotebookId;
+      notes = await loadNotes(currentNotebookId);
+      note = await loadNote(state.currentNoteId);
+    } else {
+      currentNotebookId = notebooks[0] && notebooks[0].id;
+      notes = await loadNotes(currentNotebookId);
+      let currentNoteId = notes[0] && notes[0].id;
+      note = await loadNote(currentNoteId);
+    }
 
-      this.setState({
-        notebooks,
-        currentNotebookId,
-        notes,
-        currentNote: note
-      });
+    this.setState({
+      notebooks,
+      currentNotebookId,
+      notes,
+      currentNote: note
+    });
 
-    window.addEventListener('beforeunload', (event) => {
-      // Cancel the event as stated by the standard.
-      event.preventDefault();
-
-      debugger;
-
+    const handler = (event) => {
       const {currentNotebookId, currentNote} = this.state;
-
       window.localStorage.setItem('note', JSON.stringify({
         currentNotebookId,
         currentNoteId: currentNote.id
       }));
-      // Chrome requires returnValue to be set.
       event.returnValue = '';
-    });
+    }
+
+    window.addEventListener('beforeunload', handler);
+
+    this.clean = () => {
+      window.removeEventListener('beforeunload', handler);
+    };
   }
 
   componentWillUnmount() {
-    window.removeEventListener('beforeunload');
+    this.clean();
   }
 
   render() {
