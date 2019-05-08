@@ -117,7 +117,7 @@ function LayerThree() {
   );
 }
 
-@inject
+@inject(GlobalContext)
 class LayerFour extends React.Component {
   render() {
     return (
