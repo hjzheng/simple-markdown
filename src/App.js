@@ -17,8 +17,10 @@ const Block = styled.div`
   border: 1px solid red;
   color: #fff;
   background: red;
-  height: 30px;
-  width: 30px;
+  height: 100px;
+  width: 100px;
+  left: 100px;
+  top: 30px;
   position: absolute;
 `
 
@@ -60,15 +62,16 @@ class App extends React.Component {
         console.log('开始移动')
       }),
       map(event => ({
-        event
+        event,
+        ...this.position
       })),
-      concatMap(({event}) => 
+      concatMap(({event, left, top}) => 
         fromEvent(window, 'mousemove').pipe(
           throttleTime(50),
           map((moveEvent) => {
             return {
-              left: moveEvent.clientX,
-              top: moveEvent.clientY
+              left: moveEvent.clientX - event.clientX + left,
+              top: moveEvent.clientY - event.clientY + top
             }
           }),
           takeUntil(fromEvent(window, 'mouseup')),
