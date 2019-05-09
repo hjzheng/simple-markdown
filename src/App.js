@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-
 import { Subject, fromEvent } from 'rxjs';
 
 import {
@@ -12,6 +11,8 @@ import {
   finalize,
   tap
 } from 'rxjs/operators';
+import ContextMenu from './ContextMenu';
+import contextMenuController from './ContextMenuController';;
 
 const Block = styled.div`
   border: 1px solid red;
@@ -22,6 +23,12 @@ const Block = styled.div`
   left: 100px;
   top: 30px;
   position: absolute;
+`
+
+const Container = styled.div`
+  border: 1px solid red;
+  height: calc(100vh - 2px);
+  overflow: hidden;
 `
 
 class App extends React.Component {
@@ -49,6 +56,19 @@ class App extends React.Component {
   onDragStart = (e) => {
     e.persist();
     this.drag$.next(e);
+  }
+
+  onContextMenu = (e) => {
+    e.preventDefault();
+    contextMenuController.show({
+      actions: [
+        { name: '刷新', handler: () => {} },
+        { name: '测试', handler: () => {} }
+      ],
+      left: e.clientX,
+      top: e.clientY
+      }
+    );
   }
 
   get movable() {
@@ -87,13 +107,14 @@ class App extends React.Component {
 
   render() {
     return (
-      <div>
+      <Container onContextMenu={this.onContextMenu}>
         <Block ref={this.movableBlock}
           onDragStart={(e) => e.preventDefault()}
           onMouseDown={this.onDragStart}>
           rxjs test
         </Block>
-      </div>
+        <ContextMenu controller={contextMenuController}/>
+      </Container>
     );
   }
 }
