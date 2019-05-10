@@ -11,13 +11,17 @@ const ContextMenuContainer = styled.ul`
     margin: 0;
     position: absolute;
     list-style: none;
-`
-const ContextMenuActionContainer = styled.li`
-    border-bottom: ${props => props.last ? '0' : '1px solid #000' };
-    border-top: 1px solid transparent;
-    height: 28px;
-    padding: 0;
-    margin: 0;
+
+    li {
+        border-bottom: 1px solid red;
+        line-height: 28px;
+        padding: 0;
+        margin: 0; 
+    }
+
+    li:last-child {
+        border-bottom: 1px solid transparent;
+    }
 `
 
 /*
@@ -43,22 +47,20 @@ class ContextMenu extends React.Component {
         fromEventPattern(
             (handler) => document.addEventListener('click', handler, true),
             (handler) => document.removeEventListener('click', handler, true)
-        ).pipe(untilDestroyed(this))
+        )
+        .pipe(untilDestroyed(this))
         .subscribe(e => {
-
             const current = this.contextMenuRef.current;
-
             if (current && current.contains(e.target)) {
-              return
+                return
             }
             this.props.controller.hide();
-        })
+        });
     }
 
     handleMenuClick = (e, action) => {
         e.stopPropagation();
         action.handler && action.handler();
-
         this.props.controller.hide();
     }
 
@@ -72,12 +74,11 @@ class ContextMenu extends React.Component {
                     ref={this.contextMenuRef}>
                     {
                         actions.map((action, index) => (
-                            <ContextMenuActionContainer  
-                                last={index === actions.length - 1} 
+                            <li  
                                 key={index}
                                 onClick={e => this.handleMenuClick(e, action)}>
                                 {action.name}
-                            </ContextMenuActionContainer>
+                            </li>
                         ))
                     }
                 </ContextMenuContainer>
