@@ -13,6 +13,8 @@ const Title = styled.h2`
 `;
 const TaskList = styled.div`
     padding: 8px;
+    min-width: 300px;
+    min-height: 300px;
     background-color: ${props => (props.isDraggingOver ? "skyblue" : "white")};
 `;
 
