@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';  
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 import cx from 'classnames';
 import './Modal.scss';
 
@@ -65,7 +65,7 @@ class Modal extends React.Component {
                 transitionName="example"
                 transitionEnterTimeout={1000}
                 transitionLeaveTimeout={300}>
-                { visible ? 
+                { visible ?
                 <div className={className}>
                     <div className="modal" tabIndex="-1" role="dialog" style={{display: 'block'}}>
                         <div className="modal-dialog" role="document">
@@ -82,11 +82,11 @@ class Modal extends React.Component {
                             <div className="modal-footer">
                                 {
                                     buttons.map((btn, index) => {
-                                        return ( 
-                                            <button 
-                                                key={index} 
-                                                type="button" 
-                                                className={cx("btn", btn.isPrimary ? 'btn-primary' : 'btn-secondary')} 
+                                        return (
+                                            <button
+                                                key={index}
+                                                type="button"
+                                                className={cx("btn", btn.isPrimary ? 'btn-primary' : 'btn-secondary')}
                                                 onClick={() => this.onButtonClick(btn.type)}
                                                 data-dismiss="modal">
                                                     {btn.text}
@@ -98,7 +98,7 @@ class Modal extends React.Component {
                         </div>
                     </div>
                     {mask}
-                </div> : 
+                </div> :
                 null
                 }
             </ReactCSSTransitionGroup>
@@ -108,9 +108,16 @@ class Modal extends React.Component {
 
 
 class ModalWithState extends React.Component {
-            
+
         state = {
-            visible: true
+            visible: false
+        }
+
+        // 这里显示出来，能够让对话框的打开动画正常
+        // 借此可以思考`TransitionGroup`的动画原理
+        // 是子节点“创建”时，添加class，所以class名称也叫enter
+        componentDidMount() {
+          this.setState({ visible: true });
         }
 
         onRequestClose = () => {
@@ -142,7 +149,7 @@ class ModalWithState extends React.Component {
                     onCancel={this.handleCancel}
                 >
                     { children }
-                </Modal> 
+                </Modal>
             )
         }
     }
@@ -155,8 +162,12 @@ Modal.Confirm = ({title, message, onOk, onCancel}) => {
 
 
     const requestClose = () => {
+      // 移掉container之前还需要调用 [ReactDOM.unmountComponentAtNote()](https://reactjs.org/docs/react-dom.html#unmountcomponentatnode) 做一些清理工作。
+      // react的事件等是基于代理的，在这个函数中会清理挂接的事件以及相应的状态数据
         document.body.removeChild(confirmDOM);
     }
+
+    // onOk和onCancel应该直接传递给Modal即可
     const ok = () => {
         onOk && onOk();
     }
@@ -173,7 +184,7 @@ Modal.Confirm = ({title, message, onOk, onCancel}) => {
             onRequestClose={requestClose}
         >
             { message }
-        </ModalWithState>, confirmDOM   
+        </ModalWithState>, confirmDOM
     );
 
 }
