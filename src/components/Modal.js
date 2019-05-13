@@ -156,6 +156,9 @@ class ModalWithState extends React.Component {
 
 Modal.Confirm = ({title, message, onOk, onCancel}) => {
 
+    // 可以尝试重用这个节点？
+    // 如果重用的话，应该会发现 再次打开 ModalWithState时会走 update流程, 有助于你更好地理解生命周期
+    // 那样的话如果每次都要新的弹出对话框，可以给他传递一个key (key不同，组件会重新构建)
     const confirmDOM = document.createElement('div');
 
     document.body.appendChild(confirmDOM);
