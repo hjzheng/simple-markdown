@@ -108,68 +108,71 @@ class Modal extends React.Component {
 
 
 class ModalWithState extends React.Component {
-            
-        state = {
-            visible: true
-        }
 
-        onRequestClose = () => {
-            this.props.onRequestClose && this.props.onRequestClose();
-            this.setState({visible: false});
-        }
-
-        handleOk = () => {
-            this.props.onOk && this.props.onOk();
-            this.onRequestClose();
-        }
-
-        handleCancel = () => {
-            this.props.onCancel && this.props.onCancel();
-            this.onRequestClose();
-        }
-
-        render() {
-
-            const { visible } = this.state;
-            const { title, children } = this.props;
-
-            return (
-                <Modal
-                    title={title}
-                    visible={visible}
-                    onRequestClose={this.onRequestClose}
-                    onOk={this.handleOk}
-                    onCancel={this.handleCancel}
-                >
-                    { children }
-                </Modal> 
-            )
-        }
+    state = {
+        visible: false
     }
 
-Modal.Confirm = ({title, message, onOk, onCancel}) => {
+    componentDidMount() {
+        this.setState({ visible: true });
+    }
 
-    const confirmDOM = document.createElement('div');
+    onRequestClose = () => {
+        this.props.onRequestClose && this.props.onRequestClose();
+        this.setState({visible: false});
+    }
 
-    document.body.appendChild(confirmDOM);
+    handleOk = () => {
+        this.props.onOk && this.props.onOk();
+        this.onRequestClose();
+    }
 
+    handleCancel = () => {
+        this.props.onCancel && this.props.onCancel();
+        this.onRequestClose();
+    }
+
+    render() {
+
+        const { visible } = this.state;
+        const { title, children } = this.props;
+
+        return (
+            <Modal
+                title={title}
+                visible={visible}
+                onRequestClose={this.onRequestClose}
+                onOk={this.handleOk}
+                onCancel={this.handleCancel}
+            >
+                { children }
+            </Modal> 
+        )
+    }
+}
+
+const confirmDOM = document.createElement('div');
+document.body.appendChild(confirmDOM);
+
+
+Modal.Confirm = ({title, message, onOk, onCancel}) => { 
+
+    function unmount() {
+        setTimeout(() => {
+          ReactDOM.unmountComponentAtNode(confirmDOM);
+        }, 0);
+    }
 
     const requestClose = () => {
-        document.body.removeChild(confirmDOM);
-    }
-    const ok = () => {
-        onOk && onOk();
-    }
-
-    const cancel = () => {
-        onCancel && onCancel();
+        unmount();
     }
 
     ReactDOM.render(
         <ModalWithState
+            key={Date.now()}
             title={title}
-            onOk={ok}
-            onCancel={cancel}
+            onOk={onOk}
+            onCancel={onCancel}
             onRequestClose={requestClose}
         >
             { message }
