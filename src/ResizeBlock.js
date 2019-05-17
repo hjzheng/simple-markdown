@@ -4,7 +4,6 @@ import { Subject, fromEvent } from 'rxjs';
 
 import {
     concatMap,
-    filter,
     map,
     takeUntil,
     throttleTime,
@@ -53,13 +52,55 @@ const ResizeHandler = styled.div`
 
 class ResizeBlock extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.blockRef = React.createRef();
+    }
+
     leftTopResizeHandler$ = new Subject();
     rightTopResizeHandler$ = new Subject();
     leftBottomResizeHandler$ = new Subject();
     rightBottomResizeHandler$ = new Subject();  
 
     componentDidMount() {
-        
+        let rect = null;
+
+        this.rightTopResizeHandler$.pipe(
+            map(event => event.nativeEvent),
+            tap(() => {
+                rect = this.blockRef.current.getBoundingClientRect();
+            }),
+            map(event => ({
+                event,
+                rect: {
+                    left: rect.left,
+                    top: rect.top,
+                    width: rect.width,
+                    height: rect.height
+                }
+            })),
+            concatMap(({event, rect}) => 
+                fromEvent(window, 'mousemove').pipe(
+                    throttleTime(50),
+                    map(moveEvent => {
+                        return {
+                            width: moveEvent.pageX - event.pageX + rect.width,
+                            height: - moveEvent.pageY + event.pageY + rect.height,
+                            top: moveEvent.pageY,
+                            left: moveEvent.pageX
+                        };
+                    }),
+                    takeUntil(fromEvent(window, 'mouseup')),
+                    finalize(() => {
+                        console.log('移动结束')
+                    })
+            ))
+        ).subscribe(({width, height, top}) => {
+            this.blockRef.current.style.width = width + 'px';
+            this.blockRef.current.style.height = height + 'px';
+            this.blockRef.current.style.top = top + 'px';
+            // this.blockRef.current.style.left = top + 'px';
+        })
     }
 
     onMouseDown(e, type) {
@@ -83,11 +124,15 @@ class ResizeBlock extends React.Component {
 
     render() {
         return (
-            <ResizeBlockContainer>
-                <ResizeHandler type="rightTop" onMouseDown={(e) => this.onMouseDown(e, "rightTop")}></ResizeHandler>
-                <ResizeHandler type="leftTop" onMouseDown={(e) => this.onMouseDown(e, "leftTop")}></ResizeHandler>
-                <ResizeHandler type="leftBottom" onMouseDown={(e) => this.onMouseDown(e, "leftBottom")}></ResizeHandler>
-                <ResizeHandler type="rightBottom" onMouseDown={(e) => this.onMouseDown(e, "rightBottom")}></ResizeHandler>
+            <ResizeBlockContainer ref={this.blockRef}>
+                <ResizeHandler type="rightTop" 
+                    onMouseDown={(e) => this.onMouseDown(e, "rightTop")} />
+                <ResizeHandler type="leftTop" 
+                    onMouseDown={(e) => this.onMouseDown(e, "leftTop")} />
+                <ResizeHandler type="leftBottom" 
+                    onMouseDown={(e) => this.onMouseDown(e, "leftBottom")} />
+                <ResizeHandler type="rightBottom" 
+                    onMouseDown={(e) => this.onMouseDown(e, "rightBottom")} />
             </ResizeBlockContainer>
         )
     }

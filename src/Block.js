@@ -28,7 +28,7 @@ class Block extends React.Component {
         super(props);
         this.movableBlock = React.createRef();
     }
-    
+
     drag$ = new Subject();
 
     get movable() {
@@ -57,24 +57,24 @@ class Block extends React.Component {
         this.drag$.pipe(
             filter(() => this.movable),
             tap(() => {
-            console.log('开始移动')
+              console.log('开始移动')
             }),
             map(event => ({
-            event,
-            ...this.position
+              event,
+              ...this.position
             })),
             concatMap(({event, left, top}) => 
-            fromEvent(window, 'mousemove').pipe(
+              fromEvent(window, 'mousemove').pipe(
                 throttleTime(50),
                 map((moveEvent) => {
-                return {
-                    left: moveEvent.clientX - event.clientX + left,
-                    top: moveEvent.clientY - event.clientY + top
-                }
+                  return {
+                      left: moveEvent.clientX - event.clientX + left,
+                      top: moveEvent.clientY - event.clientY + top
+                  }
                 }),
                 takeUntil(fromEvent(window, 'mouseup')),
                 finalize(() => {
-                console.log('移动结束')
+                  console.log('移动结束')
                 })
             ))
         ).subscribe(position => {
