@@ -1,6 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
-import { Subject, fromEvent } from 'rxjs';
+import { Subject, fromEvent, merge } from 'rxjs';
+import { untilDestroyed } from './untilDestoryed';
 
 import {
     concatMap,
@@ -60,46 +61,119 @@ class ResizeBlock extends React.Component {
     leftTopResizeHandler$ = new Subject();
     rightTopResizeHandler$ = new Subject();
     leftBottomResizeHandler$ = new Subject();
-    rightBottomResizeHandler$ = new Subject();  
+    rightBottomResizeHandler$ = new Subject(); 
+
+    handleResize = (diffX, diffY, type, rect) => {
+
+        const minimum_size = 50;
+
+        let { top, left, width, height } = rect
+
+        let res = {};
+    
+        switch (type) {
+          case 'rightTop': {
+            res = {
+              ...res,
+              top: top + diffY,
+              height: height - diffY,
+              width: width + diffX
+            }
+            break
+          }
+          case 'leftTop':
+            res = {
+              ...res,
+              height: height - diffY,
+              width: width - diffX,
+              left: left + diffX,
+              top: top + diffY
+            }
+            break
+          case 'leftBottom':
+            res = { 
+                ...res, 
+                left: left + diffX,
+                height:  height + diffY,
+                width: width - diffX
+            }
+            break
+          case 'rightBottom': {
+            res = {
+              ...res,
+              width: width + diffX,
+              height: height + diffY
+            }
+            break
+          }
+          default:
+            break
+        }
+
+        return res;
+    }    
 
     componentDidMount() {
         let rect = null;
 
-        this.rightTopResizeHandler$.pipe(
-            map(event => event.nativeEvent),
+        merge(
+            this.leftTopResizeHandler$.pipe(
+              map((event) => ({
+                event: event.nativeEvent,
+                type: 'leftTop'
+              }))
+            ),
+            this.rightTopResizeHandler$.pipe(
+              map((event) => ({
+                event: event.nativeEvent,
+                type: 'rightTop'
+              }))
+            ),
+            this.leftBottomResizeHandler$.pipe(
+              map((event) => ({
+                event: event.nativeEvent,
+                type: 'leftBottom'
+              }))
+            ),
+            this.rightBottomResizeHandler$.pipe(
+              map((event) => ({
+                event: event.nativeEvent,
+                type: 'rightBottom'
+              }))
+            )
+          ).pipe(
             tap(() => {
                 rect = this.blockRef.current.getBoundingClientRect();
+                console.log(rect);
             }),
-            map(event => ({
+            untilDestroyed(this),
+            map(({event, type}) => ({
                 event,
-                rect: {
-                    left: rect.left,
-                    top: rect.top,
-                    width: rect.width,
-                    height: rect.height
-                }
+                type,
+                rect
             })),
-            concatMap(({event, rect}) => 
+            concatMap(({event, type, rect}) => 
                 fromEvent(window, 'mousemove').pipe(
                     throttleTime(50),
                     map(moveEvent => {
                         return {
-                            width: moveEvent.pageX - event.pageX + rect.width,
-                            height: - moveEvent.pageY + event.pageY + rect.height,
-                            top: moveEvent.pageY,
-                            left: moveEvent.pageX
+                            distX: moveEvent.pageX - event.pageX,
+                            distY: moveEvent.pageY - event.pageY,
+                            type,
+                            rect
                         };
                     }),
+                    map(({distX, distY, type, rect}) => (this.handleResize(distX, distY, type, rect))),
                     takeUntil(fromEvent(window, 'mouseup')),
                     finalize(() => {
                         console.log('移动结束')
                     })
             ))
-        ).subscribe(({width, height, top}) => {
+        ).subscribe(({top, left, width, height}) => {
             this.blockRef.current.style.width = width + 'px';
             this.blockRef.current.style.height = height + 'px';
             this.blockRef.current.style.top = top + 'px';
-            // this.blockRef.current.style.left = top + 'px';
+            this.blockRef.current.style.left = left + 'px';
         })
     }
 
