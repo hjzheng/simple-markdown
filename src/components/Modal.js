@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';  
 import cx from 'classnames';
@@ -84,46 +84,83 @@ const Modal = ({
     );
 }
 
-const ModalWithState = ({
-    title, 
-    children, 
-    onOk = () => {}, 
-    onCancel = () => {}, 
-    onRequestClose = () => {}
-}) => {
-    const [visible, setVisible] = useState(false);
 
-    useEffect(() => {
-        setVisible(true);
-    }, [visible])
+/**
+ *  render props
+ *  */
 
-    const requestClose = () => {
-        onRequestClose && onRequestClose();
-        setVisible(false);
-    }
-        
-    const handleOk = () => {
-        onOk();
-        requestClose();
-    }
-        
-    const handleCancel = () => {
-        onCancel();
-        this.onRequestClose();
+class VisibleState extends React.Component {
+    state = {
+        visible: false
     }
 
-    return (
-        <Modal
-            title={title}
-            visible={visible}
-            onRequestClose={requestClose}
-            onOk={handleOk}
-            onCancel={handleCancel}
-        >
-            { children }
-        </Modal> 
-    );
+    setVisible = (visible, callback) => {
+        this.setState(()=>{
+            return {visible}
+        }, () => {
+            callback && callback();
+        });
+    }
+
+    componentDidMount() {
+        this.setVisible(true);
+    }
+
+    getProps() {
+        return {
+            visible: this.state.visible,
+            setVisible: this.setVisible
+        };
+    }
+
+    render() {
+        return this.props.children(this.getProps())
+    }
 }
+
+/**
+ * use hooks
+ */
+
+// const ModalWithState = ({
+//     title, 
+//     children, 
+//     onOk = () => {}, 
+//     onCancel = () => {}, 
+//     onRequestClose = () => {}
+// }) => {
+//     const [visible, setVisible] = useState(false);
+//     useEffect(() => {
+//         setVisible(true);
+//     }, [visible])
+
+//     const requestClose = () => {
+//         onRequestClose && onRequestClose();
+//         setVisible(false);
+//     }
+        
+//     const handleOk = () => {
+//         onOk();
+//         requestClose();
+//     }
+        
+//     const handleCancel = () => {
+//         onCancel();
+//         this.onRequestClose();
+//     }
+
+//     return (
+//         <Modal
+//             title={title}
+//             visible={visible}
+//             onRequestClose={requestClose}
+//             onOk={handleOk}
+//             onCancel={handleCancel}
+//         >
+//             { children }
+//         </Modal> 
+//     );
+// }
 
 const confirmDOM = document.createElement('div');
 document.body.appendChild(confirmDOM);
@@ -142,15 +179,27 @@ Modal.Confirm = ({title, message, onOk, onCancel}) => {
     }
 
     ReactDOM.render(
-        <ModalWithState
-            key={Date.now()}
-            title={title}
-            onOk={onOk}
-            onCancel={onCancel}
-            onRequestClose={requestClose}
-        >
-            { message }
-        </ModalWithState>, confirmDOM   
+        <VisibleState>
+            { 
+                ({visible, setVisible}) => (
+                    <Modal 
+                        title={title}
+                        visible={visible}
+                        onOk={() => {
+                            setVisible(false, onOk);
+                            requestClose();
+                        }}
+                        onCancel={() => {
+                            setVisible(false, onCancel);
+                            requestClose();
+                        }}
+                        onRequestClose={requestClose}
+                        > 
+                        {message}
+                    </Modal>
+                )
+            }
+        </VisibleState>, confirmDOM
     );
 
 }
