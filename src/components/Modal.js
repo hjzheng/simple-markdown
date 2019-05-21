@@ -164,6 +164,8 @@ const Modal = ({
 
 /**
  * hooks and render props
+ * 
+ * collection props, should be design
  */
 
 const VisibleState = (props) => {
@@ -174,7 +176,23 @@ const VisibleState = (props) => {
         setVisible(true);
     }, [visible])
 
-    return props.children({visible, setVisible})
+    // collection props
+    const getProps = ({onOk, onCancel, ...props}) => {
+        return {
+            onOk: () => {
+                setVisible(false);
+                onOk && onOk();
+            },
+            onCancel: () => {
+                setVisible(false);
+                onCancel && onCancel();
+            },
+            visible,
+            ...props
+        };
+    }
+
+    return props.children({getProps})
 }
 
 const confirmDOM = document.createElement('div');
@@ -196,19 +214,20 @@ Modal.Confirm = ({title, message, onOk, onCancel}) => {
     ReactDOM.render(
         <VisibleState>
             { 
-                ({visible, setVisible}) => (
+                ({getProps}) => (
                     <Modal 
-                        title={title}
-                        visible={visible}
-                        onOk={() => {
-                            setVisible(false, onOk);
-                            requestClose();
-                        }}
-                        onCancel={() => {
-                            setVisible(false, onCancel);
-                            requestClose();
-                        }}
-                        onRequestClose={requestClose}
+                        {...getProps({
+                            onOk: () => {
+                                onOk && onOk()
+                                requestClose();
+                            },
+                            onCancel: () => {
+                                onCancel && onCancel();
+                                requestClose();
+                            },
+                            title,
+                            onRequestClose: requestClose
+                        })}
                         > 
                         {message}
                     </Modal>
