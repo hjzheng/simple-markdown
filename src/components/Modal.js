@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';  
 import cx from 'classnames';
@@ -89,34 +89,34 @@ const Modal = ({
  *  render props
  *  */
 
-class VisibleState extends React.Component {
-    state = {
-        visible: false
-    }
+// class VisibleState extends React.Component {
+//     state = {
+//         visible: false
+//     }
 
-    setVisible = (visible, callback) => {
-        this.setState(()=>{
-            return {visible}
-        }, () => {
-            callback && callback();
-        });
-    }
+//     setVisible = (visible, callback) => {
+//         this.setState(()=>{
+//             return {visible}
+//         }, () => {
+//             callback && callback();
+//         });
+//     }
 
-    componentDidMount() {
-        this.setVisible(true);
-    }
+//     componentDidMount() {
+//         this.setVisible(true);
+//     }
 
-    getProps() {
-        return {
-            visible: this.state.visible,
-            setVisible: this.setVisible
-        };
-    }
+//     getProps() {
+//         return {
+//             visible: this.state.visible,
+//             setVisible: this.setVisible
+//         };
+//     }
 
-    render() {
-        return this.props.children(this.getProps())
-    }
-}
+//     render() {
+//         return this.props.children(this.getProps())
+//     }
+// }
 
 /**
  * use hooks
@@ -161,6 +161,21 @@ class VisibleState extends React.Component {
 //         </Modal> 
 //     );
 // }
+
+/**
+ * hooks and render props
+ */
+
+const VisibleState = (props) => {
+
+    const [visible, setVisible] = useState(false);
+    
+    useEffect(() => {
+        setVisible(true);
+    }, [visible])
+
+    return props.children({visible, setVisible})
+}
 
 const confirmDOM = document.createElement('div');
 document.body.appendChild(confirmDOM);
