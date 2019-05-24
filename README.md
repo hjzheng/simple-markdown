@@ -8,3 +8,8 @@
 ### React Portal
 
 虽然产生的代码被挂载了其他地方，但是原dom结构中的事件冒泡关系依然有效
+
+
+### React 生命周期
+
+http://projects.wojtekmaj.pl/react-lifecycle-methods-diagram/
