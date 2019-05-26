@@ -1,40 +1,24 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import QRCodeUtil from "qrcode";
 
-class QRCode extends React.Component {
-  state = { imgUrl: null };
+const QRCode = ({ url }) => {
+  const [imgUrl, setImgUrl] = useState(null);
 
-  generateQR = async text => {
+  const generateQR = async text => {
     try {
       const imgUrl = await QRCodeUtil.toDataURL(text);
-      this.setState({ imgUrl });
+      setImgUrl(imgUrl);
     } catch (err) {
       console.error(err);
     }
   };
 
-  componentDidMount() {
-    this.generateQR(this.props.url);
-  }
+  // useEffect, useLayoutEffect and  componentDidMount componentDidUpdate componentWillUnmount
+  useEffect(() => {
+    generateQR(url);
+  }, [url]);
 
-  // 等于 React.PureComponent;
-  shouldComponentUpdate(nextProps, nextState) {
-    return (
-      this.props.url !== nextProps.url || this.state.url !== nextState.imgUrl
-    );
-  }
-
-  componentDidUpdate(prevProps) {
-    // Typical usage (don't forget to compare props):
-    if (this.props.url !== prevProps.url) {
-      this.generateQR(this.props.url);
-    }
-  }
-
-  render() {
-    const { imgUrl } = this.state;
-    return imgUrl ? <img src={imgUrl} alt="qrcode" /> : null;
-  }
-}
+  return imgUrl ? <img src={imgUrl} alt="qrcode" /> : null;
+};
 
 export default QRCode;
