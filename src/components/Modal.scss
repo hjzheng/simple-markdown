@@ -1,49 +1,48 @@
 .example-enter {
-    opacity: 0.01;
+  opacity: 0.01;
 }
 
 .example-enter.example-enter-active {
-    opacity: 1;
-    transition: opacity 500ms ease-in;
+  opacity: 1;
+  transition: opacity 500ms ease-in;
 
-    .modal {
-      animation: 1s swing;
-    }
+  .modal {
+    animation: 1s swing;
+  }
 }
 
 .example-leave {
-    opacity: 1;
+  opacity: 1;
 }
 
 .example-leave.example-leave-active {
-    opacity: 0.01;
-    transition: opacity 300ms ease-in;
+  opacity: 0.01;
+  transition: opacity 300ms ease-in;
 }
 
-
 @keyframes swing {
-    20% {
-      -webkit-transform: rotate3d(0, 0, 1, 15deg);
-      transform: rotate3d(0, 0, 1, 15deg);
-    }
-  
-    40% {
-      -webkit-transform: rotate3d(0, 0, 1, -10deg);
-      transform: rotate3d(0, 0, 1, -10deg);
-    }
-  
-    60% {
-      -webkit-transform: rotate3d(0, 0, 1, 5deg);
-      transform: rotate3d(0, 0, 1, 5deg);
-    }
-  
-    80% {
-      -webkit-transform: rotate3d(0, 0, 1, -5deg);
-      transform: rotate3d(0, 0, 1, -5deg);
-    }
-  
-    to {
-      -webkit-transform: rotate3d(0, 0, 1, 0deg);
-      transform: rotate3d(0, 0, 1, 0deg);
-    }
+  20% {
+    -webkit-transform: rotate3d(0, 0, 1, 15deg);
+    transform: rotate3d(0, 0, 1, 15deg);
   }
+
+  40% {
+    -webkit-transform: rotate3d(0, 0, 1, -10deg);
+    transform: rotate3d(0, 0, 1, -10deg);
+  }
+
+  60% {
+    -webkit-transform: rotate3d(0, 0, 1, 5deg);
+    transform: rotate3d(0, 0, 1, 5deg);
+  }
+
+  80% {
+    -webkit-transform: rotate3d(0, 0, 1, -5deg);
+    transform: rotate3d(0, 0, 1, -5deg);
+  }
+
+  to {
+    -webkit-transform: rotate3d(0, 0, 1, 0deg);
+    transform: rotate3d(0, 0, 1, 0deg);
+  }
+}
