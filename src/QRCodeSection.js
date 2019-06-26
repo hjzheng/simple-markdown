@@ -3,7 +3,8 @@ import QRCode from "./components/QRCode";
 
 class QRCodeSection extends React.Component {
   state = {
-    url: "http://www.163.com"
+    url: "http://www.163.com",
+    name: "xxxx"
   };
 
   change = e => {
